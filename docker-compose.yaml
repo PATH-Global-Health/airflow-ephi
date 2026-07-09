@@ -105,7 +105,7 @@ services:
       redis: { condition: service_healthy }
       airflow-init: { condition: service_completed_successfully }
     extra_hosts: # <--- ADD THIS BLOCK (if on Linux)
-      - "host.docker.internal:172.17.0.1"
+      - "host.docker.internal:host-gateway"
 
   airflow-dag-processor:
     <<: *airflow-common
@@ -129,7 +129,7 @@ services:
       redis: { condition: service_healthy }
       airflow-apiserver: { condition: service_healthy }
     extra_hosts: # <--- ADD THIS BLOCK (if on Linux)
-      - "host.docker.internal:172.17.0.1"
+      - "host.docker.internal:host-gateway"
 
   airflow-triggerer:
     <<: *airflow-common
