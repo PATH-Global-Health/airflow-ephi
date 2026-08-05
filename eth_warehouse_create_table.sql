@@ -40,7 +40,10 @@ CREATE TABLE IF NOT EXISTS orgunits (
     lastupdated TIMESTAMP,
     _fetchedat TIMESTAMP,
     leaf BOOLEAN,
-    downloadedat DATE,
+    dv_downloadedat DATE,
+    dc_downloadedat DATE,
+    rr_downloadedat DATE,
+
     -- Hierarchy Columns (Level 1-8)
     oulevel1id VARCHAR(50), oulevel1name TEXT,
     oulevel2id VARCHAR(50), oulevel2name TEXT,
