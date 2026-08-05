@@ -4,7 +4,7 @@ from airflow.models import Variable
 from datetime import datetime, timedelta
 from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
 
-from eth_dhis2_tasks.dataset_completeness import sync_completeness
+# from eth_dhis2_tasks.dataset_completeness import sync_completeness
 from eth_dhis2_tasks.data_values import sync_data_values
 from eth_dhis2_tasks.reporting_rates import sync_reporting_rates
 from eth_dhis2_tasks.periods import sync_periods
@@ -64,28 +64,28 @@ with DAG(
     )
 
     # Sync dataset completeness
-    dc_download_all = Variable.get("ETH_PHEM_FULL_REBUILD_COMPLETENESS")
-    prepare_full_rebuild_dc_task = PythonOperator(
-        task_id='prepare_full_rebuild_completeness',
-        python_callable=prepare_full_rebuild,
-        op_kwargs={
-            **eth_creds,
-            'FULL_REBUILD': str(dc_download_all).lower() in ['true', '1', 't', 'y', 'yes'],
-            'TARGET_TABLE': 'phem_dataset_completeness',
-            'DOWNLOADED_AT_FIELD': 'dc_downloadedat'
-        }
-    )
-    sync_dataset_compl_task = PythonOperator(
-        task_id='sync_dataset_completeness',
-        python_callable=sync_completeness,
-        execution_timeout=timedelta(hours=120),
-        op_kwargs={
-            **eth_creds,
-            'FULL_REBUILD': str(dc_download_all).lower() in ['true', '1', 't', 'y', 'yes'],
-            'ROOT_ORGUNIT_IDs': Variable.get("ETH_PHEM_ROOT_ORGUNIT_IDs", deserialize_json=True), 
-            "STAGING_SCHEMA_NAME": "stg_phem"
-        }
-    )
+    # dc_download_all = Variable.get("ETH_PHEM_FULL_REBUILD_COMPLETENESS")
+    # prepare_full_rebuild_dc_task = PythonOperator(
+    #     task_id='prepare_full_rebuild_completeness',
+    #     python_callable=prepare_full_rebuild,
+    #     op_kwargs={
+    #         **eth_creds,
+    #         'FULL_REBUILD': str(dc_download_all).lower() in ['true', '1', 't', 'y', 'yes'],
+    #         'TARGET_TABLE': 'phem_dataset_completeness',
+    #         'DOWNLOADED_AT_FIELD': 'dc_downloadedat'
+    #     }
+    # )
+    # sync_dataset_compl_task = PythonOperator(
+    #     task_id='sync_dataset_completeness',
+    #     python_callable=sync_completeness,
+    #     execution_timeout=timedelta(hours=120),
+    #     op_kwargs={
+    #         **eth_creds,
+    #         'FULL_REBUILD': str(dc_download_all).lower() in ['true', '1', 't', 'y', 'yes'],
+    #         'ROOT_ORGUNIT_IDs': Variable.get("ETH_PHEM_ROOT_ORGUNIT_IDs", deserialize_json=True), 
+    #         "STAGING_SCHEMA_NAME": "stg_phem"
+    #     }
+    # )
 
     # Sync reporting rate
     rr_download_all = Variable.get("ETH_PHEM_FULL_REBUILD_REPORTING_RATE")
@@ -132,7 +132,7 @@ with DAG(
 
     # Dependency Chain
     sync_dv_task >> sync_periods_task >> delete_ghost_datavalue
-    # Branch A: Completeness
-    delete_ghost_datavalue >> prepare_full_rebuild_dc_task >> sync_dataset_compl_task
+    # # Branch A: Completeness
+    # delete_ghost_datavalue >> prepare_full_rebuild_dc_task >> sync_dataset_compl_task
     # Branch B: Reporting Rates
     delete_ghost_datavalue >> prepare_full_rebuild_rr_task >> sync_rr_task
