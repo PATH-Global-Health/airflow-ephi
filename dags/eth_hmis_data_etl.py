@@ -38,6 +38,11 @@ with DAG(
         "DATA_SOURCE": "hmis"
     }
 
+    # Sync tuning (adjustable via Airflow Variables without code changes)
+    max_workers      = int(Variable.get("ETH_HMIS_MAX_WORKERS",      default_var="6"))
+    calls_per_second = float(Variable.get("ETH_HMIS_CALLS_PER_SECOND", default_var="5"))
+    rr_batch_size    = int(Variable.get("ETH_HMIS_RR_BATCH_SIZE",     default_var="7"))
+
     # Sync data values
     dv_download_all = Variable.get("ETH_HMIS_DOWNLOAD_ALL_DATA_VALUES", default_var="False")
     sync_dv_task = PythonOperator(
@@ -46,10 +51,12 @@ with DAG(
         execution_timeout=timedelta(hours=120),
         op_kwargs={
             **eth_creds,
-            'DATA_ELEMENTS': Variable.get("ETH_HMIS_DATA_ELEMENTS", deserialize_json=True), 
+            'DATA_ELEMENTS': Variable.get("ETH_HMIS_DATA_ELEMENTS", deserialize_json=True),
             'DEFAULT_START': Variable.get("ETH_HMIS_DEFAULT_DOWNLOAD_START_DATE"),
             'DOWNLOAD_ALL': str(dv_download_all).lower() in ['true', '1', 't', 'y', 'yes'],
-            'USE_ETHIOPIAN_CALENDAR': True
+            'USE_ETHIOPIAN_CALENDAR': True,
+            'MAX_WORKERS': max_workers,
+            'CALLS_PER_SECOND': calls_per_second,
         }
     )
 
@@ -109,7 +116,10 @@ with DAG(
             **eth_creds,
             'FULL_REBUILD': str(rr_download_all).lower() in ['true', '1', 't', 'y', 'yes'],
             'ROOT_ORGUNIT_IDs': Variable.get("ETH_HMIS_ROOT_ORGUNIT_IDs", deserialize_json=True),
-            "STAGING_SCHEMA_NAME": "stg_hmis"
+            'STAGING_SCHEMA_NAME': "stg_hmis",
+            'MAX_WORKERS': max_workers,
+            'CALLS_PER_SECOND': calls_per_second,
+            'BATCH_SIZE': rr_batch_size,
         }
     )
 

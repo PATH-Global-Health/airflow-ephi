@@ -1,4 +1,5 @@
 import requests
+import threading
 from datetime import datetime
 import time
 import logging
@@ -6,6 +7,22 @@ from ethiopian_date import EthiopianDateConverter
 
 
 logger = logging.getLogger(__name__)
+
+
+class RateLimiter:
+    """Token-bucket rate limiter safe for use across multiple threads."""
+    def __init__(self, calls_per_second: float):
+        self._min_interval = 1.0 / calls_per_second
+        self._lock = threading.Lock()
+        self._last_call = 0.0
+
+    def acquire(self):
+        with self._lock:
+            now = time.monotonic()
+            wait = self._min_interval - (now - self._last_call)
+            if wait > 0:
+                time.sleep(wait)
+            self._last_call = time.monotonic()
 
 
 def to_ethiopian_string(gregorian_date_str):
